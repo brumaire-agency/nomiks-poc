@@ -1,0 +1,23 @@
+import { RoundDetailType } from "@/types";
+
+export const sumCollectedFound = (rounds: RoundDetailType[], roundPublic: RoundDetailType): number => {
+  let sumRounds = 0;
+  // Sum rounds collected found
+  rounds.map(round => sumRounds = sumRounds + round.roundCollectedFound);
+  // Add public collected found
+  sumRounds = sumRounds + roundPublic.roundCollectedFound;
+  return sumRounds;
+}
+
+export const sumRoundSupplyShare = (rounds: RoundDetailType[], roundPublic: RoundDetailType): number => {
+  let sumRounds = 0;
+  // Sum rounds supply share
+  rounds.map(round => sumRounds = sumRounds + round.roundSupplyShare);
+  // Add public supply share
+  sumRounds = sumRounds + roundPublic.roundSupplyShare;
+  return sumRounds;
+}
+
+export const getMaxRoundPrice = (rounds: RoundDetailType[]): number => {
+  return Math.max(...rounds.map(round => round.roundPrice));
+}
