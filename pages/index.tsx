@@ -21,10 +21,10 @@ export default function Page({ project, projectGlobal, projectExample }: Project
   )
 }
 
-export async function getServerSideProps() {
-  const responseProjectGlobal = await fetch("http://localhost:3000/api/project/global");
+export async function getServerSideProps() {  
+  const responseProjectGlobal = await fetch(`${process.env.DOMAIN_URL}/api/project/global`);
   const projectGlobal = await responseProjectGlobal.json();
-  const responseProjectExample = await fetch("http://localhost:3000/api/project/example");
+  const responseProjectExample = await fetch(`${process.env.DOMAIN_URL}/api/project/example`);
   const projectExample = await responseProjectExample.json();
  
   return { props: { projectGlobal, projectExample } }
