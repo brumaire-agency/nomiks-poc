@@ -7,10 +7,16 @@ export type ProjectType = {
   rounds: RoundType[];
 }
 
-export type RoundType = {
+export interface RoundType {
   roundPrice: number;
   roundName: string;
   roundSupplyShare: number;
+  currencies: Currency[];
+}
+
+export interface Currency {
+  currency: string;
+  share: number;
 }
 
 export interface RoundDetailType extends RoundType {

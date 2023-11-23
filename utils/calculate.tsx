@@ -18,6 +18,14 @@ export const sumRoundSupplyShare = (rounds: RoundDetailType[], roundPublic: Roun
   return sumRounds;
 }
 
+export const sumCurrencyShare = (rounds: RoundDetailType[]): number[] => {
+  return rounds.map(round => {
+    let sumRounds = 0;
+    round.currencies.map(currency => sumRounds = sumRounds + currency.share)
+    return sumRounds;
+  });
+}
+
 export const getMaxRoundPrice = (rounds: RoundDetailType[]): number => {
   return Math.max(...rounds.map(round => round.roundPrice));
 }

@@ -2,18 +2,19 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Input, Table, Modal, Button, MessageError } from '@/components';
-import type { ProjectType, RoundDetailType, RoundType } from '@/types';
-import { getFoundingPublicRoundDetail, getFoundingRoundDetail, getFoundingRoundPublicDetailDefault, getMaxRoundPrice, sumCollectedFound, sumRoundSupplyShare, transformProjectData } from '@/utils';
+import { Input, Table, Modal, Button, MessageError, RoundForm } from '@/components';
+import type { AssetType, ProjectType, RoundDetailType } from '@/types';
+import { getFoundingPublicRoundDetail, getFoundingRoundDetail, getFoundingRoundPublicDetailDefault, getMaxRoundPrice, sumCollectedFound, sumCurrencyShare, sumRoundSupplyShare, transformProjectData } from '@/utils';
 
 export interface FormFoundingProps {
+  assets: AssetType[];
   assetName: string;
   project?: ProjectType;
   projectExample?: ProjectType;
   totalSupply: number;
 }
   
-export const FormFounding = ({ assetName, project, projectExample, totalSupply }: FormFoundingProps) => {
+export const FormFounding = ({ assets, assetName, project, projectExample, totalSupply }: FormFoundingProps) => {
   // States - Content
   const [hardCap, setHardCap] = useState<number|undefined>(project?.hardCap);
   const [softCap, setSoftCap] = useState<number|undefined>(project?.softCap);
@@ -22,21 +23,35 @@ export const FormFounding = ({ assetName, project, projectExample, totalSupply }
   const [roundPublicDetail, setRoundPublicDetail] = useState<RoundDetailType|null>(null);
   const [error, setError] = useState<string|null>(null);
 
+  // Memo
+  const defaultCurrencies = useMemo(() => [{ currency: assets[0].label, share: 0 }], [assets]);
+  const totalCollectedFound = useMemo(() => {
+    return roundPublicDetail ? sumCollectedFound(roundsDetails, roundPublicDetail) : 0
+  }, [roundsDetails, roundPublicDetail]);
+  const canEditTable = useMemo(() => !!hardCap && !!softCap && !!ratioPv, [hardCap, softCap, ratioPv]);
+  const canSave = useMemo(() => !error && canEditTable, [error, canEditTable]);
+
+  // States - Modal
+  const [modalAddOpen, setModalAddOpen] = useState<boolean>(false);
+  const [modalEditOpen, setModalEditOpen] = useState<boolean>(false);
+  const [modalEditPublicOpen, setModalEditPublicOpen] = useState<boolean>(false);
+  const [roundIdToEdit, setRoundIdToEdit] = useState<number|null>(null);
+
   useEffect(() => {
     if (project) {
-      setRoundsDetails(project.rounds.map(round => getFoundingRoundDetail(round, totalSupply, 0)));
+      setRoundsDetails(project.rounds.map(round => getFoundingRoundDetail(round, totalSupply, 0, defaultCurrencies)));
     }
-  }, [project, totalSupply])
+  }, [project, totalSupply, defaultCurrencies])
 
   useEffect(() => {
     if (roundsDetails && roundPublicDetail) {
-      setRoundsDetails(roundsDetails.map(round => getFoundingRoundDetail(round, totalSupply, roundPublicDetail.roundPrice)));
+      setRoundsDetails(roundsDetails.map(round => getFoundingRoundDetail(round, totalSupply, roundPublicDetail.roundPrice, defaultCurrencies, round.currencies)));
     }
-  }, [roundPublicDetail, totalSupply])
+  }, [roundPublicDetail, totalSupply, defaultCurrencies])
 
   useEffect(() => {
     if (!!hardCap && !!softCap && !!ratioPv) {
-      setRoundPublicDetail(getFoundingRoundPublicDetailDefault(hardCap, ratioPv, totalSupply));
+      setRoundPublicDetail(getFoundingRoundPublicDetailDefault(hardCap, ratioPv, totalSupply, defaultCurrencies));
     }
   }, [hardCap, softCap, ratioPv, totalSupply])
 
@@ -48,49 +63,38 @@ export const FormFounding = ({ assetName, project, projectExample, totalSupply }
       setError('The sum of rounds supply share must be lower than 100%');
     } else if (roundPublicDetail && getMaxRoundPrice(roundsDetails) > roundPublicDetail.roundPrice) {
       setError('The round price must be lower than public price');
+    } else if (roundsDetails && roundPublicDetail && !sumCurrencyShare([...roundsDetails, roundPublicDetail]).every(currency => currency <= 1)) {
+      setError('The sum of currencies in round must be lower than 100%');
     } else {
       setError(null);
     }
-  }, [hardCap, softCap, roundsDetails, roundPublicDetail])
-
-  // Memo
-  const totalCollectedFound = useMemo(() => {
-    return roundPublicDetail ? sumCollectedFound(roundsDetails, roundPublicDetail) : 0
-  }, [roundsDetails, roundPublicDetail]);
-  const canEditTable = useMemo(() => !!hardCap && !!softCap && !!ratioPv, [hardCap, softCap, ratioPv]);
-  const canSave = useMemo(() => !error, [error]);
-
-  // States - Modal
-  const [modalAddOpen, setModalAddOpen] = useState<boolean>(false);
-  const [modalEditOpen, setModalEditOpen] = useState<boolean>(false);
-  const [modalEditPublicOpen, setModalEditPublicOpen] = useState<boolean>(false);
-  const [roundIdToEdit, setRoundIdToEdit] = useState<number|null>(null);
+  }, [hardCap, softCap, roundsDetails, roundPublicDetail]);
 
   // Functions
-  const handleAddRound = (newRound: RoundType) => {
+  const handleAddRound = (newRound: RoundForm) => {
     if (roundPublicDetail) {
       // Add new Round
-      const newRoundDetail = getFoundingRoundDetail(newRound, totalSupply, roundPublicDetail.roundPrice);
+      const newRoundDetail = getFoundingRoundDetail(newRound, totalSupply, roundPublicDetail.roundPrice, defaultCurrencies);
       // Sort Rounds
       setRoundsDetails([...roundsDetails, newRoundDetail].sort((a, b) => a.roundPrice - b.roundPrice));
     }
     // Close modal
     setModalAddOpen(false);
   }
-  const handleEditRound = (newRound: RoundType, id: number|null) => {
+  const handleEditRound = (newRound: RoundForm, id: number|null) => {
     if (roundPublicDetail) {
       let newRounds = [...roundsDetails];
       // Edit Round
-      if (id !== null) newRounds[id] = getFoundingRoundDetail(newRound, totalSupply, roundPublicDetail.roundPrice);
+      if (id !== null) newRounds[id] = getFoundingRoundDetail(newRound, totalSupply, roundPublicDetail.roundPrice, defaultCurrencies, newRounds[id].currencies);
       // Sort Rounds
       setRoundsDetails(newRounds.sort((a, b) => a.roundPrice - b.roundPrice))
     }
     // Close modal
     setModalEditOpen(false);
   }
-  const handleEditPublicRound = (newRound: RoundType) => {
+  const handleEditPublicRound = (newRound: RoundForm) => {
     // Edit Public Round
-    setRoundPublicDetail(getFoundingPublicRoundDetail(newRound, totalSupply));
+    setRoundPublicDetail(getFoundingPublicRoundDetail(newRound, totalSupply, defaultCurrencies, roundPublicDetail?.currencies));
     // Close modal
     setModalEditPublicOpen(false);
   }
@@ -102,6 +106,44 @@ export const FormFounding = ({ assetName, project, projectExample, totalSupply }
     setRoundsDetails(newRounds.sort((a, b) => a.roundPrice - b.roundPrice))
     // Close modal
     setModalEditOpen(false);
+  }
+
+  const handleChangeCurrency = (idRound: number, idCurrency: number, currencyValue: string, shareValue: number) => {
+    let newRounds = [...roundsDetails];
+    // Edit Round
+    newRounds[idRound] = {
+      ...newRounds[idRound],
+      currencies: newRounds[idRound].currencies.map((currency, id) => id === idCurrency ? { currency: currencyValue, share: shareValue } : currency)
+    }
+    // Sort Rounds
+    setRoundsDetails(newRounds.sort((a, b) => a.roundPrice - b.roundPrice))
+  }
+  const handleChangeCurrencyPublic = (idCurrency: number, currencyValue: string, shareValue: number) => {
+    if (roundPublicDetail) {
+      const newCurrencies = roundPublicDetail.currencies.map((currency, id) => id === idCurrency ? { currency: currencyValue, share: shareValue } : currency);
+      setRoundPublicDetail({
+        ...roundPublicDetail,
+        currencies: newCurrencies
+      })
+    }
+  }
+  const handeAddCurrency = (idRound: number) => {
+    let newRounds = [...roundsDetails];
+    // Edit Round
+    newRounds[idRound] = {
+      ...newRounds[idRound],
+      currencies: [...newRounds[idRound].currencies, { currency: assets[0].label, share: 0 }],
+    }
+    // Sort Rounds
+    setRoundsDetails(newRounds.sort((a, b) => a.roundPrice - b.roundPrice))
+  }
+  const handeAddCurrencyPublic = () => {
+    if (roundPublicDetail) {
+      setRoundPublicDetail({
+        ...roundPublicDetail,
+        currencies: [...roundPublicDetail.currencies, { currency: assets[0].label, share: 0 }]
+      })
+    }
   }
 
 
@@ -128,7 +170,7 @@ export const FormFounding = ({ assetName, project, projectExample, totalSupply }
       setHardCap(projectExample.hardCap);
       setSoftCap(projectExample.softCap);
       setRatioPv(projectExample.ratioPv);
-      setRoundsDetails(projectExample.rounds.map(round => getFoundingRoundDetail(round, totalSupply, projectExample.publicPrice)))
+      setRoundsDetails(projectExample.rounds.map(round => getFoundingRoundDetail(round, totalSupply, projectExample.publicPrice, defaultCurrencies, round.currencies)))
     }
   }
 
@@ -186,8 +228,9 @@ export const FormFounding = ({ assetName, project, projectExample, totalSupply }
 
       {/* Table - Founding */}
       <Table
+        assets={assets}
         disabled={!canEditTable}
-        rows={roundsDetails}
+        rounds={roundsDetails}
         roundPublic={roundPublicDetail}
         onClickAdd={() => setModalAddOpen(true)}
         onClickEdit={(id: number) => {
@@ -195,6 +238,10 @@ export const FormFounding = ({ assetName, project, projectExample, totalSupply }
           setModalEditOpen(true);
         }}
         onClickEditPublic={() => setModalEditPublicOpen(true)}
+        onCurrencyChange={(idRound, idCurrency, currencyValue, shareValue) => handleChangeCurrency(idRound, idCurrency, currencyValue, shareValue)}
+        onCurrencyAdd={(idCurrency) => handeAddCurrency(idCurrency)}
+        onCurrencyPublicChange={(idCurrency, currencyValue, shareValue) => handleChangeCurrencyPublic(idCurrency, currencyValue, shareValue)}
+        onCurrencyPublicAdd={() => handeAddCurrencyPublic()}
       />
 
       {/* Button - Save */}

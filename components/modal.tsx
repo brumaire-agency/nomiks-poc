@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Input, MessageError } from "@/components";
-import type { RoundDetailType, RoundType } from "@/types"
+import type { RoundDetailType } from "@/types"
 
 export interface ModalProps {
   title: string;
@@ -10,8 +10,14 @@ export interface ModalProps {
   round?: RoundDetailType|null;
   roundsLength: number;
   onClose: () => void;
-  onSave: (round: RoundType) => void;
+  onSave: (round: RoundForm) => void;
   onDelete?: () => void;
+}
+
+export interface RoundForm {
+  roundPrice: number;
+  roundName: string;
+  roundSupplyShare: number;
 }
   
 export const Modal = ({ title, isPublic, round, roundsLength, onClose, onSave, onDelete }: ModalProps) => {

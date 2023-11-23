@@ -3,4 +3,5 @@ export * from './input';
 export * from './message-error';
 export * from './form-founding';
 export * from './modal';
+export * from "./select";
 export * from './table';

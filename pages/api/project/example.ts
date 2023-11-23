@@ -14,13 +14,13 @@ export default function handler(
       publicSupplyShare: 0.7,
       rounds: [
         {
-          roundPrice: 0.12, roundName: "early investors", roundSupplyShare: 0.1,
+          roundPrice: 0.12, roundName: "early investors", roundSupplyShare: 0.1, currencies: [{ currency: "usd", share: 1 }],
         },
         {
-          roundPrice: 0.25, roundName: "Round 2", roundSupplyShare: 0.25,
+          roundPrice: 0.25, roundName: "Round 2", roundSupplyShare: 0.25, currencies: [{ currency: "btc", share: 0.5 }, { currency: "usd", share: 0.5 }],
         },
         {
-          roundPrice: 0.4, roundName: "Presale", roundSupplyShare: 0.35,
+          roundPrice: 0.4, roundName: "Presale", roundSupplyShare: 0.35, currencies: [{ currency: "btc", share: 0.15 }, { currency: "usd", share: 0.5 }, { currency: "eth", share: 0.35 }],
         }
       ]
     }

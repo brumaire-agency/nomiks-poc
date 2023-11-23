@@ -1,6 +1,6 @@
-import { RoundDetailType } from "@/types";
+import { Currency, RoundDetailType } from "@/types";
 
-export const getFoundingRoundPublicDetailDefault = (hardCap: number, ratioPv: number, totalTokenAmount: number): RoundDetailType => {
+export const getFoundingRoundPublicDetailDefault = (hardCap: number, ratioPv: number, totalTokenAmount: number, defaultCurrencies: Currency[]): RoundDetailType => {
   const publicPrice = (hardCap * 0.7 / totalTokenAmount ) * ratioPv;
   const publicTokenAmount = totalTokenAmount * ratioPv;
 
@@ -11,5 +11,6 @@ export const getFoundingRoundPublicDetailDefault = (hardCap: number, ratioPv: nu
     roundTokenAmount: publicTokenAmount,
     roundDiscount: null,
     roundCollectedFound: publicPrice * publicTokenAmount,
+    currencies: defaultCurrencies,
   }
 }

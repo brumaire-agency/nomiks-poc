@@ -18,6 +18,7 @@ export const transformProjectData = (
         roundPrice: roundDetail.roundPrice,
         roundName: roundDetail.roundName,
         roundSupplyShare: roundDetail.roundSupplyShare,
+        currencies: roundDetail.currencies
       }
     }))
   }
