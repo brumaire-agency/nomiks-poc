@@ -1,14 +1,12 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import type { ProjectGlobalType } from '@/types';
+import type {NextApiRequest, NextApiResponse} from 'next';
+import type {ProjectGlobalType} from '@/types';
+import projectService from "@/services/ProjectService";
 
 export default function handler(
-  _req: NextApiRequest,
-  res: NextApiResponse<ProjectGlobalType>
+    _req: NextApiRequest,
+    res: NextApiResponse<ProjectGlobalType>
 ) {
-  res.status(200).json(
-    { 
-      asset : "NMK",
-      totalSupply: 10000000
-    }
-  )
+
+    const projectData = projectService.loadProjectData()
+    res.status(200).json(projectData)
 }
