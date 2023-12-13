@@ -5,6 +5,7 @@ import {Input, Table, Modal, Button, MessageError, RoundForm} from '@/components
 import {useContext} from "react";
 import {FundingContext} from "@/contexts/FundingContext";
 import {getFoundingPublicRoundDetail, getFoundingRoundDetail, transformProjectData} from "@/utils";
+import FundingHeader from "@/components/FundingHeader";
 
 
 export const FormFounding = () => {
@@ -77,14 +78,20 @@ export const FormFounding = () => {
         // Edit Round
         newRounds[idRound] = {
             ...newRounds[idRound],
-            currencies: newRounds[idRound].currencies.map((currency, id) => id === idCurrency ? {currency: currencyValue, share: shareValue} : currency)
+            currencies: newRounds[idRound].currencies.map((currency, id) => id === idCurrency ? {
+                currency: currencyValue,
+                share: shareValue
+            } : currency)
         }
         // Sort Rounds
         setRoundsDetails && setRoundsDetails(newRounds.sort((a, b) => a.roundPrice - b.roundPrice))
     }
     const handleChangeCurrencyPublic = (idCurrency: number, currencyValue: string, shareValue: number) => {
         if (roundPublicDetail) {
-            const newCurrencies = roundPublicDetail.currencies.map((currency, id) => id === idCurrency ? {currency: currencyValue, share: shareValue} : currency);
+            const newCurrencies = roundPublicDetail.currencies.map((currency, id) => id === idCurrency ? {
+                currency: currencyValue,
+                share: shareValue
+            } : currency);
             setRoundPublicDetail && setRoundPublicDetail({
                 ...roundPublicDetail,
                 currencies: newCurrencies
@@ -152,43 +159,7 @@ export const FormFounding = () => {
                 </Button>
             </div>
             {error && <MessageError>{error}</MessageError>}
-            <div className="flex gap-2">
-                <Input
-                    label="Hard cap"
-                    type="number"
-                    value={hardCap}
-                    onChange={(event) => setHardCap && setHardCap(Number(event.target.value))}
-                    data-cy="input-hard-cap"
-                />
-                <Input
-                    label="Soft cap"
-                    type="number"
-                    value={softCap}
-                    onChange={(event) => setSoftCap && setSoftCap(Number(event.target.value))}
-                    data-cy="input-soft-cap"
-                />
-                <Input
-                    label="Ratio Public/Private Sale"
-                    type="number"
-                    value={ratioPv}
-                    onChange={(event) => setRatioPv && setRatioPv(Number(event.target.value))}
-                    data-cy="input-ratio-pv"
-                />
-                <Input
-                    label="Total collected found"
-                    type="number"
-                    value={totalCollectedFound}
-                    disabled
-                    data-cy="input-total-collected-found"
-                />
-                <Input
-                    label="Total Tokens amounts Sale (private/public)"
-                    type="number"
-                    value={totalSupply}
-                    disabled
-                    data-cy="input-total-supply"
-                />
-            </div>
+            <FundingHeader/>
 
             {/* Table - Founding */}
             <Table
