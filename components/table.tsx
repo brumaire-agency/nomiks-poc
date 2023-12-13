@@ -8,7 +8,7 @@ export interface TableProps {
   assets: AssetType[];
   disabled?: boolean;
   rounds: RoundDetailType[];
-  roundPublic: RoundDetailType|null;
+  roundPublic?: RoundDetailType;
   onClickAdd: () => void;
   onClickEdit: (id: number) => void;
   onClickEditPublic: () => void;
